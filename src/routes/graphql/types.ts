@@ -8,3 +8,12 @@ export const MemberType = new GraphQLObjectType({
       postsLimitPerMonth: { type: GraphQLInt },
     },
   });
+
+  export const PostType = new GraphQLObjectType({
+    name: 'PostType',
+    fields: {
+      id: { type: GraphQLString },
+      title: { type: GraphQLString },
+      content: { type: GraphQLString },
+    },
+  });

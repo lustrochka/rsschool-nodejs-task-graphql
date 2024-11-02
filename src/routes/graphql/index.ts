@@ -1,7 +1,7 @@
 import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { createGqlResponseSchema, gqlResponseSchema } from './schemas.js';
 import { graphql, GraphQLList, GraphQLObjectType, GraphQLSchema, GraphQLString } from 'graphql';
-import { MemberType } from './types.js';
+import { MemberType, PostType } from './types.js';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   const { prisma } = fastify;
@@ -14,6 +14,12 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
           type: new GraphQLList(MemberType),
           resolve: async () => {
             return prisma.memberType.findMany();
+          }
+        },
+        posts: {
+          type: new GraphQLList(PostType),
+          resolve: async () => {
+            return prisma.post.findMany();
           }
         }
       }
