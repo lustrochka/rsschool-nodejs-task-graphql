@@ -5,7 +5,7 @@ import { MemberType, PostType, UserType, ProfileType, MemberTypeId } from './typ
 import { UUID } from './types/uuid.js';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
-  const { prisma, httpErrors } = fastify;
+  const { prisma } = fastify;
 
   const schema = new GraphQLSchema({
     query: new GraphQLObjectType({
@@ -28,9 +28,6 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
                 id: args.id,
               },
             });
-            if (memberType === null) {
-              throw httpErrors.notFound();
-            }
             return memberType;
           }
         },
@@ -51,9 +48,6 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
                 id: args.id,
               },
             });
-            if (post === null) {
-              throw httpErrors.notFound();
-            }
             return post;
           }
         },
@@ -74,9 +68,6 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
                 id: args.id,
               },
             });
-            if (user === null) {
-              throw httpErrors.notFound();
-            }
             return user;
           }
         },
@@ -97,9 +88,6 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
                 id: args.id,
               },
             });
-            if (profile === null) {
-              throw httpErrors.notFound();
-            }
             return profile;
           }
         },
