@@ -2,6 +2,7 @@ import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { createGqlResponseSchema, gqlResponseSchema } from './schemas.js';
 import { graphql, GraphQLList, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { GraphQLString, GraphQLFloat, GraphQLInt, GraphQLBoolean, GraphQLEnumType } from 'graphql';
+import { User } from '@prisma/client';
 import { UUID } from './types/uuid.js';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
@@ -53,7 +54,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
               posts: {type: new GraphQLList(PostType)},
               userSubscribedTo: {
                 type: new GraphQLList(UserType),
-                resolve: async (parent) => {
+                resolve: async (parent: User) => {
                   return prisma.user.findMany({
                     where: {
                       subscribedToUser: {
@@ -148,7 +149,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
           args: {
             id: { type: UUID }
           },
-          resolve: async (parent, args: { id: string}) => {
+          resolve: async (parent, args: { id: string}): Promise<User | null> => {
             const user = await prisma.user.findUnique({
               where: {
                 id: args.id,
