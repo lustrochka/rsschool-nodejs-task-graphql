@@ -1,11 +1,86 @@
 import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { createGqlResponseSchema, gqlResponseSchema } from './schemas.js';
 import { graphql, GraphQLList, GraphQLObjectType, GraphQLSchema } from 'graphql';
-import { MemberType, PostType, UserType, ProfileType, MemberTypeId } from './types.js';
+import { GraphQLString, GraphQLFloat, GraphQLInt, GraphQLBoolean, GraphQLEnumType } from 'graphql';
 import { UUID } from './types/uuid.js';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   const { prisma } = fastify;
+
+  const MemberTypeId = new GraphQLEnumType({
+    name: 'MemberTypeId',
+    values: {
+      BASIC: { value: 'BASIC' },
+      BUSINESS: { value: 'BUSINESS' },
+    },
+  });
+  
+  const MemberType = new GraphQLObjectType({
+      name: 'MemberType',
+      fields: () => ({
+        id: { type: MemberTypeId },
+        discount: { type: GraphQLFloat },
+        postsLimitPerMonth: { type: GraphQLInt },
+      }),
+    });
+  
+    const PostType = new GraphQLObjectType({
+      name: 'PostType',
+      fields: () => ({
+        id: { type: UUID },
+        title: { type: GraphQLString },
+        content: { type: GraphQLString },
+      }),
+    });
+  
+    const ProfileType = new GraphQLObjectType({
+      name: 'ProfileType',
+      fields: () => ({
+      id: { type: UUID },
+      isMale: { type: GraphQLBoolean },
+      yearOfBirth: { type: GraphQLInt },
+      memberType: {type: MemberType}
+  }),
+  });
+  
+    const UserType = new GraphQLObjectType({
+      name: 'UserType',
+      fields: () => ({
+              id: { type: UUID },
+              name: { type: GraphQLString },
+              balance: { type: GraphQLFloat },
+              profile: { type: ProfileType },
+              posts: {type: new GraphQLList(PostType)},
+              userSubscribedTo: {
+                type: new GraphQLList(UserType),
+                resolve: async (parent) => {
+                  return prisma.user.findMany({
+                    where: {
+                      subscribedToUser: {
+                        some: {
+                          subscriberId: parent.id,
+                        },
+                      },
+                    },
+                  });
+                },
+              },
+              subscribedToUser: {
+                type: new GraphQLList(UserType),
+                resolve: async (parent) => {
+                  return prisma.user.findMany({
+                    where: {
+                      userSubscribedTo: {
+                        some: {
+                          authorId: parent.id,
+                        },
+                      },
+                    },
+                  });
+                }
+              },
+      }),
+    });
 
   const schema = new GraphQLSchema({
     query: new GraphQLObjectType({
@@ -54,7 +129,18 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         users: {
           type: new GraphQLList(UserType),
           resolve: async () => {
-            return prisma.user.findMany();
+            return prisma.user.findMany({
+              include: {
+                profile: {
+                  include: {
+                    memberType: true,
+                  },
+                },
+                posts: true,
+                userSubscribedTo: true,
+                subscribedToUser: true
+              },
+            });
           }
         },
         user: {
@@ -66,6 +152,16 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
             const user = await prisma.user.findUnique({
               where: {
                 id: args.id,
+              },
+              include: {
+                profile: {
+                  include: {
+                    memberType: true,
+                  },
+                },
+                posts: true,
+                userSubscribedTo: true,
+                subscribedToUser: true
               },
             });
             return user;
