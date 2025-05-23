@@ -5,14 +5,8 @@ import {
   GraphQLList,
   GraphQLObjectType,
   GraphQLSchema,
-  GraphQLInputObjectType,
-} from 'graphql';
-import {
   GraphQLString,
   GraphQLFloat,
-  GraphQLInt,
-  GraphQLBoolean,
-  GraphQLEnumType,
 } from 'graphql';
 import { User } from '@prisma/client';
 import { UUID } from './types/uuid.js';
@@ -22,99 +16,15 @@ import {
   DtoChangeProfileType,
   DtoChangePostType,
 } from './types/types.js';
+import { MemberTypeId, MemberType } from './types/member-types.js';
+import { PostType, CreatePostInputType, ChangePostInputType } from './types/posts-types.js';
+import { ProfileType, CreateProfileInputType, ChangeProfileInputType } from './types/profile-types.js';
+import { CreateUserInputType, ChangeUserInputType } from './types/user-types.js';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   const { prisma } = fastify;
 
-  const MemberTypeId = new GraphQLEnumType({
-    name: 'MemberTypeId',
-    values: {
-      BASIC: { value: 'BASIC' },
-      BUSINESS: { value: 'BUSINESS' },
-    },
-  });
-
-  const MemberType = new GraphQLObjectType({
-    name: 'MemberType',
-    fields: () => ({
-      id: { type: MemberTypeId },
-      discount: { type: GraphQLFloat },
-      postsLimitPerMonth: { type: GraphQLInt },
-    }),
-  });
-
-  const PostType = new GraphQLObjectType({
-    name: 'Post',
-    fields: () => ({
-      id: { type: UUID },
-      title: { type: GraphQLString },
-      content: { type: GraphQLString },
-    }),
-  });
-
-  const ProfileType = new GraphQLObjectType({
-    name: 'Profile',
-    fields: () => ({
-      id: { type: UUID },
-      isMale: { type: GraphQLBoolean },
-      yearOfBirth: { type: GraphQLInt },
-      memberType: { type: MemberType },
-    }),
-  });
-
-  const CreateUserInputType = new GraphQLInputObjectType({
-    name: 'CreateUserInput',
-    fields: () => ({
-      name: { type: GraphQLString },
-      balance: { type: GraphQLFloat },
-    }),
-  });
-
-  const CreateProfileInputType = new GraphQLInputObjectType({
-    name: 'CreateProfileInput',
-    fields: () => ({
-      isMale: { type: GraphQLBoolean },
-      yearOfBirth: { type: GraphQLInt },
-      userId: { type: UUID },
-      memberTypeId: { type: MemberTypeId },
-    }),
-  });
-
-  const CreatePostInputType = new GraphQLInputObjectType({
-    name: 'CreatePostInput',
-    fields: () => ({
-      title: { type: GraphQLString },
-      content: { type: GraphQLString },
-      authorId: { type: UUID },
-    }),
-  });
-
-  const ChangeUserInputType = new GraphQLInputObjectType({
-    name: 'ChangeUserInput',
-    fields: () => ({
-      name: { type: GraphQLString },
-      balance: { type: GraphQLFloat },
-    }),
-  });
-
-  const ChangePostInputType = new GraphQLInputObjectType({
-    name: 'ChangePostInput',
-    fields: () => ({
-      title: { type: GraphQLString },
-      content: { type: GraphQLString },
-    }),
-  });
-
-  const ChangeProfileInputType = new GraphQLInputObjectType({
-    name: 'ChangeProfileInput',
-    fields: () => ({
-      isMale: { type: GraphQLBoolean },
-      yearOfBirth: { type: GraphQLInt },
-      memberTypeId: { type: MemberTypeId },
-    }),
-  });
-
-  const UserType = new GraphQLObjectType({
+   const UserType = new GraphQLObjectType({
     name: 'UserType',
     fields: () => ({
       id: { type: UUID },
