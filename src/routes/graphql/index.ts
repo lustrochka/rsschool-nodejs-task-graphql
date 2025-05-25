@@ -7,6 +7,8 @@ import {
   GraphQLSchema,
   GraphQLString,
   GraphQLFloat,
+  validate,
+  parse,
 } from 'graphql';
 import { User } from '@prisma/client';
 import { UUID } from './types/uuid.js';
@@ -20,6 +22,7 @@ import { MemberTypeId, MemberType } from './types/member-types.js';
 import { PostType, CreatePostInputType, ChangePostInputType } from './types/posts-types.js';
 import { ProfileType, CreateProfileInputType, ChangeProfileInputType } from './types/profile-types.js';
 import { CreateUserInputType, ChangeUserInputType } from './types/user-types.js';
+import depthLimit from 'graphql-depth-limit';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   const { prisma } = fastify;
@@ -315,10 +318,13 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async handler(req) {
-      return graphql({
+      const { query, variables } = req.body;
+      const errors = validate(schema, parse(query), [depthLimit(5)]);
+      if (errors.length > 0) return { data: null, errors}
+      return await graphql({
         schema,
-        source: req.body.query,
-        variableValues: req.body.variables,
+        source: query,
+        variableValues: variables,
       });
     },
   });
